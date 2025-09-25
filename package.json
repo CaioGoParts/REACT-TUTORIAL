@@ -1,5 +1,5 @@
 {
-  "name": "tutorial-goparts-videos",
+  "name": "tutorial-goparts-react",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+  "react": "^19.1.1",
+  "react-dom": "^19.1.1",
+  "react-router-dom": "^7.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
