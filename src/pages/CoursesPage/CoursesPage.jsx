@@ -5,12 +5,17 @@ import { db } from '../../firebase';
 import { tutoriais as localTutoriais } from '../../data/database';
 import { useLocation, Link } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
+import { useAuth } from '../../contexts/AuthContext';
+import { loadUserProgress } from '../../utils/progressUtils';
+import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
 
 
 function CoursesPage() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
   const [tutoriais, setTutoriais] = useState([]);
+  const { currentUser } = useAuth();
+  const [tutorialProgress, setTutorialProgress] = useState({});
 
   useEffect(() => {
     const fetchTutoriais = async () => {
@@ -31,13 +36,42 @@ function CoursesPage() {
     };
     fetchTutoriais();
   }, []);
+
+  // Carregar progresso dos tutoriais quando o usuário estiver logado e os tutoriais carregados
+  useEffect(() => {
+    const loadTutorialProgress = async () => {
+      if (!currentUser || tutoriais.length === 0) return;
+
+      const progressData = {};
+      for (const tutorial of tutoriais) {
+        try {
+          const progress = await loadUserProgress(currentUser.uid, tutorial.id);
+          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : modulosTutorial2.length;
+          progressData[tutorial.id] = {
+            completed: progress.completedModules.length,
+            total: totalModules
+          };
+        } catch (error) {
+          console.error(`Erro ao carregar progresso do tutorial ${tutorial.id}:`, error);
+          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : modulosTutorial2.length;
+          progressData[tutorial.id] = {
+            completed: 0,
+            total: totalModules
+          };
+        }
+      }
+      setTutorialProgress(progressData);
+    };
+
+    loadTutorialProgress();
+  }, [currentUser, tutoriais]);
   return (
     <>
       <header className="player-page-header">
         <div className="player-header-content">
           <div className="player-header-left">
-            <img src="/gopartbrasil_logo.jpeg" alt="Logo GoParts" className="player-header-logo" />
-            <h1>TUTORIAL GOPARTS</h1>
+            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="player-header-logo" />
+            <h1>GO ACADEMY</h1>
           </div>
           {!isLoginPage && (
             <button
@@ -65,11 +99,22 @@ function CoursesPage() {
                 className="course-list-link"
               >
                 <div className="course-list-item">
-                  <div className="course-img-placeholder">
-                    {/* Substitua o src abaixo por uma imagem específica se desejar */}
-                    <img src="/ML.svg" alt="Imagem do tutorial" />
+                  <div className="course-header">
+                    <div className="course-img-placeholder">
+                      {/* Substitua o src abaixo por uma imagem específica se desejar */}
+                      <img src="/ML.svg" alt="Imagem do tutorial" />
+                    </div>
+                    {tutorialProgress[tutorial.id] && (
+                      <div className="course-progress">
+                        <i className="fa fa-chart-line" aria-hidden="true"></i>
+                        <div className="progress-text">
+                          <span className="progress-number">{tutorialProgress[tutorial.id].completed}</span>
+                          <span className="progress-label">de {tutorialProgress[tutorial.id].total} concluídos</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
+                  <div className="course-content">
                     <h3>{tutorial.titulo}</h3>
                     <p>{tutorial.descricao}</p>
                   </div>

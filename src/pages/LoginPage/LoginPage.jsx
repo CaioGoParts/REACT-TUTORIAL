@@ -1,19 +1,34 @@
 // src/pages/LoginPage/LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './LoginPage.css'; // Passo CRÍTICO: Importa os estilos
 import logo from '../../assets/logo.svg'; // Importa o logo da pasta assets
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 
 function LoginPage() {
-  const [username, setUsername] = useState('may.goparts');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // alert(`Login com usuário: ${username}`);
-    navigate('/cursos');
+
+    try {
+      setError('');
+      setLoading(true);
+      await login(email, password);
+      navigate('/cursos');
+    } catch (error) {
+      setError('Falha no login. Verifique suas credenciais.');
+      console.error('Erro no login:', error);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -29,26 +44,34 @@ function LoginPage() {
             <img src="/gopartbrasil_logo.jpeg" alt="Logo da Empresa" className="form-logo" />
             <h1>ACESSE E APROVEITE</h1>
             
+            {error && <div className="error-message">{error}</div>}
+            
             <form onSubmit={handleSubmit}>
               <div className="input-group">
-                <i className="fa fa-user input-icon"></i>
+                <i className="fa fa-envelope input-icon"></i>
                 <input 
-                  type="text" 
-                  placeholder="Usuário"
+                  type="email" 
+                  placeholder="E-mail"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="input-group">
                 <i className="fa fa-lock input-icon"></i>
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"}
                   placeholder="Senha"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
+                <i 
+                  className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+                  onClick={() => setShowPassword(!showPassword)}
+                ></i>
               </div>
               
               <div className="form-links">
@@ -56,12 +79,13 @@ function LoginPage() {
                 <a href="#">SUPORTE</a>
               </div>
               
-              <button type="submit" className="btn-acessar">ACESSAR</button>
+              <button type="submit" className="btn-acessar" disabled={loading}>
+                {loading ? 'ENTRANDO...' : 'ACESSAR'}
+              </button>
             </form>
           </main>
           <footer className="form-footer">
-            <p>Desenvolvido por Caio lamoglia  :)</p>
-            <p>REQUISITOS</p>
+            <p>Todos os Direitos reservado a: GoParts </p>
           </footer>
         </div>
       </section>

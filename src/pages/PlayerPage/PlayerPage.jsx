@@ -3,6 +3,9 @@ import { useLocation, useParams, useSearchParams, useNavigate } from 'react-rout
 import './PlayerPage.css';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { Spinner } from '../../components/Spinner/Spinner';
+import { useAuth } from '../../contexts/AuthContext';
+import { saveUserProgress, loadUserProgress } from '../../utils/progressUtils';
+import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
 
 
 
@@ -11,11 +14,24 @@ const PlayerPage = () => {
   const [searchParams] = useSearchParams();
   const iframeRef = useRef(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const modulo = location.state?.modulo;
   const [showNextButton, setShowNextButton] = useState(false);
   // tutorialId e moduleId podem vir da URL ou do objeto modulo
   const tutorialId = searchParams.get('tutorialId') || modulo?.tutorialId || 'default';
   const moduleId = modulo?.moduleId;
+
+  // Função para encontrar o próximo módulo
+  const getNextModule = (currentTutorialId, currentModuleId) => {
+    const modules = currentTutorialId === '1' ? modulosGestaoTempo : modulosTutorial2;
+    const currentIndex = modules.findIndex(mod => mod.moduleId === currentModuleId);
+    
+    if (currentIndex === -1 || currentIndex === modules.length - 1) {
+      return null; // Não há próximo módulo
+    }
+    
+    return modules[currentIndex + 1];
+  };
 
   // Estado para status do módulo
   const [status, setStatus] = useState('Estágio atual');
@@ -25,48 +41,42 @@ const PlayerPage = () => {
 
   // Atualiza status ao montar e ao clicar em Próximo
   useEffect(() => {
-    if (!tutorialId || !moduleId) return;
-    const statusKey = `status_${tutorialId}`;
-    let statusMap = {};
-    try {
-      statusMap = JSON.parse(localStorage.getItem(statusKey)) || {};
-    } catch (e) { statusMap = {}; }
-    if (statusMap[moduleId] === 'completed') {
-      setStatus('Concluído');
-    } else {
-      setStatus('Estágio atual');
-    }
-    setPendingComplete(false);
-    setVideoLoading(modulo?.type === 'video');
-    // Fallback: hide spinner after 5 seconds if onLoad doesn't fire
-    if (modulo?.type === 'video') {
-      setTimeout(() => setVideoLoading(false), 5000);
-    }
-  }, [tutorialId, moduleId, modulo]);
+    const loadInitialStatus = async () => {
+      if (!tutorialId || !moduleId || !currentUser) return;
 
-  // Função para salvar progresso no localStorage
-  // Salva progresso e status do módulo
-  const saveProgress = (setCompleted = false) => {
-    if (!tutorialId || !moduleId) return;
-    const key = `progress_${tutorialId}`;
-    let progress = [];
-    try {
-      progress = JSON.parse(localStorage.getItem(key)) || [];
-    } catch (e) { progress = []; }
-    if (!progress.includes(moduleId)) {
-      progress.push(moduleId);
-    }
-    localStorage.setItem(key, JSON.stringify(progress));
-
-    // Atualiza status do módulo no localStorage
-    if (setCompleted) {
-      const statusKey = `status_${tutorialId}`;
-      let statusMap = {};
       try {
-        statusMap = JSON.parse(localStorage.getItem(statusKey)) || {};
-      } catch (e) { statusMap = {}; }
-      statusMap[moduleId] = 'completed';
-      localStorage.setItem(statusKey, JSON.stringify(statusMap));
+        const progress = await loadUserProgress(currentUser.uid, tutorialId);
+        if (progress.moduleStatuses[moduleId] === 'completed') {
+          setStatus('Concluído');
+        } else {
+          setStatus('Estágio atual');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar status:', error);
+        setStatus('Estágio atual');
+      }
+
+      setPendingComplete(false);
+      setVideoLoading(modulo?.type === 'video');
+
+      // Fallback: hide spinner after 5 seconds if onLoad doesn't fire
+      if (modulo?.type === 'video') {
+        setTimeout(() => setVideoLoading(false), 5000);
+      }
+    };
+
+    loadInitialStatus();
+  }, [tutorialId, moduleId, modulo, currentUser]);
+
+  // Função para salvar progresso no Firestore
+  const saveProgress = async (setCompleted = false) => {
+    if (!tutorialId || !moduleId || !currentUser) return;
+
+    try {
+      await saveUserProgress(currentUser.uid, tutorialId, moduleId, setCompleted);
+      console.log('Progresso salvo para usuário:', currentUser.email);
+    } catch (error) {
+      console.error('Erro ao salvar progresso:', error);
     }
   };
 
@@ -169,8 +179,8 @@ const PlayerPage = () => {
             {score === modulo.questions.length ? (
               <>
                 Parabéns! Todas as respostas estão corretas.<br />
-                <button type="button" style={{background:'#212529', color:'#fff', border:'none', borderRadius:'6px', padding:'0.7rem 2rem', fontSize:'1rem', fontWeight:600, cursor:'pointer', marginTop:'1.2rem'}} onClick={() => { onComplete(); window.location.href = '/tutorial/1'; }}>
-                  Próximo módulo
+                <button type="button" style={{background:'#212529', color:'#fff', border:'none', borderRadius:'6px', padding:'0.7rem 2rem', fontSize:'1rem', fontWeight:600, cursor:'pointer', marginTop:'1.2rem'}} onClick={async () => { await onComplete(); navigate(`/tutorial/${tutorialId}`); }}>
+                  Voltar aos módulos
                 </button>
               </>
             ) : (
@@ -193,7 +203,7 @@ const PlayerPage = () => {
       <header className="player-page-header">
         <div className="player-header-content">
           <div className="player-header-left">
-            <img src="/gopartbrasil_logo.jpeg" alt="Logo GoParts" className="player-header-logo" />
+            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="player-header-logo" />
             <h1>TUTORIAL GOPARTS</h1>
           </div>
           <button
@@ -236,8 +246,8 @@ const PlayerPage = () => {
                   ></iframe>
                 )
               ) : (
-                <QuizAtividade modulo={modulo} onComplete={() => { 
-                  saveProgress(true); 
+                <QuizAtividade modulo={modulo} onComplete={async () => { 
+                  await saveProgress(true); 
                   setStatus('completed'); 
                   setShowNextButton(true);
                   // Track completion
@@ -259,38 +269,32 @@ const PlayerPage = () => {
             <p id="videoDesc" style={{color: (showNextButton || status === 'Concluído') ? '#28a745' : '#888', fontWeight: 500}}>
               Status: {(showNextButton || status === 'Concluído') ? 'Concluído' : status}
             </p>
+            {showNextButton && modulo?.type === 'video' && (
+              <button 
+                type="button" 
+                style={{
+                  background:'#212529', 
+                  color:'#fff', 
+                  border:'none', 
+                  borderRadius:'6px', 
+                  padding:'0.7rem 2rem', 
+                  fontSize:'1rem', 
+                  fontWeight:600, 
+                  cursor:'pointer', 
+                  marginTop:'1.2rem'
+                }} 
+                onClick={async () => { 
+                  await saveProgress(true); 
+                  setStatus('completed'); 
+                  navigate(`/tutorial/${tutorialId}`); 
+                }}
+              >
+                Voltar aos módulos
+              </button>
+            )}
           </div>
         </div>
-        {showNextButton && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginTop: '2rem'
-          }}>
-            <button
-              style={{
-                background: '#212529',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '0.8rem 2.2rem',
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px #0001',
-                marginTop: '1rem'
-              }}
-              onClick={() => {
-                saveProgress(true); // Marca como concluído
-                setStatus('completed');
-                setShowNextButton(false);
-                window.location.href = '/tutorial/1';
-              }}
-            >
-              Próximo módulo
-            </button>
-          </div>
-        )}
+        {/* Botão próximo módulo removido - agora volta direto para módulos */}
       </main>
     </div>
     <WhatsAppIcon />

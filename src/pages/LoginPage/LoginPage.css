@@ -65,11 +65,26 @@
 
 .input-group input {
   width: 100%;
-  padding: 14px 14px 14px 45px;
+  padding: 14px 45px 14px 45px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
   box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #007bff;
 }
 
 .form-links {
@@ -131,6 +146,22 @@
 
 
 
+
+/* --- Novos estilos para autenticação --- */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+  font-size: 0.9rem;
+}
+
+.btn-acessar:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
 
 /* --- Responsividade --- */
 @media (max-width: 800px) {

@@ -5,6 +5,8 @@ import { db } from '../../firebase';
 import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
 import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
+import { useAuth } from '../../contexts/AuthContext';
+import { loadUserProgress } from '../../utils/progressUtils';
 
 
 
@@ -14,6 +16,7 @@ const ModulesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { id } = useParams();
+  const { currentUser } = useAuth();
   const [completedModules, setCompletedModules] = useState([]);
   // Suporte a múltiplos tutoriais no futuro
   const tutorialId = id || 'default';
@@ -44,29 +47,74 @@ const ModulesPage = () => {
 
   const [statusMap, setStatusMap] = useState({});
   useEffect(() => {
-    const key = `progress_${tutorialId}`;
-    let progress = [];
-    try {
-      progress = JSON.parse(localStorage.getItem(key)) || [];
-    } catch (e) { progress = []; }
-    setCompletedModules(progress);
+    const loadUserProgressData = async () => {
+      if (!currentUser || tutorialId === 'default') return;
 
-    // Lê status dos módulos
-    const statusKey = `status_${tutorialId}`;
-    let statusObj = {};
-    try {
-      statusObj = JSON.parse(localStorage.getItem(statusKey)) || {};
-    } catch (e) { statusObj = {}; }
-    setStatusMap(statusObj);
-    // eslint-disable-next-line
-  }, [tutorialId]);
+      try {
+        const progress = await loadUserProgress(currentUser.uid, tutorialId);
+        setCompletedModules(progress.completedModules);
+        setStatusMap(progress.moduleStatuses);
+      } catch (error) {
+        console.error('Erro ao carregar progresso:', error);
+        setCompletedModules([]);
+        setStatusMap({});
+      }
+    };
+
+    loadUserProgressData();
+
+    // Recarregar progresso quando a página ganha foco novamente
+    const handleFocus = () => {
+      loadUserProgressData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [currentUser, tutorialId]);
+
+  // Scroll automático para o módulo atual quando a página carrega
+  useEffect(() => {
+    if (modules.length > 0) {
+      // Encontrar o primeiro módulo não completado (próximo a ser assistido)
+      const nextModuleIndex = modules.findIndex((modulo, idx) => {
+        if (idx === 0) return !completedModules.includes(modulo.moduleId);
+        const prevModule = modules[idx - 1];
+        const isPrevCompleted = completedModules.includes(prevModule.moduleId);
+        return isPrevCompleted && !completedModules.includes(modulo.moduleId);
+      });
+
+      // Se encontrou um módulo, fazer scroll para ele
+      if (nextModuleIndex !== -1) {
+        setTimeout(() => {
+          const moduleElement = document.querySelector(`[data-module-id="${modules[nextModuleIndex].moduleId}"]`);
+          if (moduleElement) {
+            moduleElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 500); // Pequeno delay para garantir que os elementos estão renderizados
+      }
+    }
+  }, [modules, completedModules]);
 
   return (
     <>
       <header className="modules-page-header">
         <div className="modules-header-content">
           <div className="modules-header-left">
-            <img src="/gopartbrasil_logo.jpeg" alt="Logo GoParts" className="modules-header-logo" />
+            <button
+              className="back-to-courses-btn"
+              onClick={() => navigate('/cursos')}
+              title="Voltar aos cursos"
+            >
+              <i className="fa fa-arrow-left" aria-hidden="true"></i>
+              Cursos
+            </button>
+            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="modules-header-logo" />
             <h1>TUTORIAL GOPARTS</h1>
           </div>
           {!isLoginPage && (
@@ -87,6 +135,22 @@ const ModulesPage = () => {
       <main>
         <div className="modules-page">
           <h2>Módulos do Curso</h2>
+          <div style={{marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
+            <p style={{margin: 0, fontSize: '1.1rem', fontWeight: 500, color: '#495057'}}>
+              Progresso: <span style={{color: '#28a745', fontWeight: 600}}>{completedModules.length}</span> de <span style={{fontWeight: 600}}>{modules.length}</span> módulos concluídos
+            </p>
+            <div style={{width: '100%', height: '8px', backgroundColor: '#e9ecef', borderRadius: '4px', marginTop: '0.5rem'}}>
+              <div 
+                style={{
+                  width: `${modules.length > 0 ? (completedModules.length / modules.length) * 100 : 0}%`, 
+                  height: '100%', 
+                  backgroundColor: '#28a745', 
+                  borderRadius: '4px',
+                  transition: 'width 0.3s ease'
+                }}
+              ></div>
+            </div>
+          </div>
           <ul className="modules-list">
             {modules.map((modulo, idx) => {
               const isCompleted = completedModules.includes(modulo.moduleId);
@@ -105,7 +169,7 @@ const ModulesPage = () => {
               }
               if (isLocked) {
                 return (
-                  <li key={modulo.moduleId} className="module-item locked">
+                  <li key={modulo.moduleId} className="module-item locked" data-module-id={modulo.moduleId}>
                     <i className="fa fa-lock" aria-label="Bloqueado" style={{marginRight:8}}></i>
                     <span>{modulo.title}</span>
                     <span style={{marginLeft:8, fontSize:'0.95em', color:'#888'}}>{status}</span>
@@ -116,10 +180,11 @@ const ModulesPage = () => {
                 <li
                   key={modulo.moduleId}
                   className={`module-item clickable${isCompleted ? ' completed' : ''}`}
-                  onClick={() => navigate(`/player?tutorialId=${tutorialId}`, { state: { modulo } })}
+                  onClick={() => navigate(`/player?tutorialId=${tutorialId}`, { state: { modulo: { ...modulo, tutorialId } } })}
                   tabIndex={0}
                   role="button"
                   style={{ cursor: 'pointer' }}
+                  data-module-id={modulo.moduleId}
                 >
                   {isCompleted ? <i className="fa fa-check-circle" style={{color:'#28a745',marginRight:8}}></i> : null}
                   <span>{modulo.title}</span>

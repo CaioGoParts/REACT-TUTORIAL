@@ -1,18 +1,30 @@
 // Header.jsx
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
-  const handleLogout = () => {
-    // Aqui você pode limpar autenticação, tokens, etc.
-    window.location.href = '/'; // Redireciona para login
+  const { logout, currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   return (
     <header className="header">
       <div className="header-content">
-        {/* Espaço reservado para logo ou título, se quiser */}
-        <div></div>
+        <div className="user-info">
+          {currentUser && (
+            <span>Olá, {currentUser.displayName || currentUser.email}</span>
+          )}
+        </div>
         <button className="logout-btn" onClick={handleLogout}>
           Logout
         </button>

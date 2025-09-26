@@ -55,11 +55,11 @@
   border: 1px solid #fff;
 }
 .courses-header-logo {
-  width: 60px;
-  height: 60px;
+  width: 72px;
+  height: 72px;
   border-radius: 8px;
   object-fit: contain;
-  background: #fff;
+  background: transparent;
   box-shadow: 0 2px 8px #0002;
 }
 .courses-page-header h1 {
@@ -99,27 +99,122 @@
   border: 1px solid #e9ecef;
   border-radius: 10px;
   box-shadow: 0 2px 8px #0001;
-  transition: box-shadow 0.2s, border 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.2rem;
-  height: 400px;
+  height: 420px;
+  transform: translateY(0);
 }
+
 .course-list-item:hover {
-  border: 1.5px solid #212529;
-  box-shadow: 0 4px 16px #0002;
+  border: 2px solid #007bff;
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+  transform: translateY(-5px);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
 }
+
+.course-list-item:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+}
+
 .course-list-item h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
   font-weight: 600;
+  text-align: center;
 }
+
 .course-list-item p {
   margin: 0;
   color: #555;
   font-size: 0.97rem;
+  text-align: justify;
+  line-height: 1.5;
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.course-img-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px #0001;
+  flex-shrink: 0;
+}
+
+.course-img-placeholder img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
+.course-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.8rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #495057;
+  min-width: 140px;
+  transition: all 0.3s ease;
+}
+
+.course-list-item:hover .course-progress {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  transform: scale(1.05);
+}
+
+.course-progress i {
+  color: #28a745;
+  font-size: 1.2rem;
+  margin-bottom: 0.2rem;
+  transition: all 0.3s ease;
+}
+
+.course-list-item:hover .course-progress i {
+  color: #2196f3;
+  transform: rotate(10deg) scale(1.1);
+}
+
+.progress-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.progress-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #28a745;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  text-align: center;
+  line-height: 1.2;
 }
 
 @media (max-width: 600px) {
@@ -127,8 +222,8 @@
     padding: 1.2rem 0.5rem 1.5rem 0.5rem;
   }
   .courses-header-logo {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
   .courses-page-header h1 {
     font-size: 1.2rem;
