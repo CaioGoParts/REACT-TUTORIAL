@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css'; // Passo CRÍTICO: Importa os estilos
 import logo from '../../assets/logo.svg'; // Importa o logo da pasta assets
+import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 
 function LoginPage() {
   const [username, setUsername] = useState('may.goparts');
@@ -69,6 +70,8 @@ function LoginPage() {
       <section className="promo-section">
         <img src="/gopartsW.png" className="promo-image" />
       </section>
+
+      <WhatsAppIcon />
 
     </div>
   );

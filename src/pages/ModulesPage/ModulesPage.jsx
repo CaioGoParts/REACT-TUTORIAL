@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './ModulesPage.css';
-import { modulosGestaoTempo } from '../../data/database';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
+import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 
 
 
@@ -10,9 +13,34 @@ const ModulesPage = () => {
   const isLoginPage = location.pathname === '/';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { id } = useParams();
   const [completedModules, setCompletedModules] = useState([]);
   // Suporte a múltiplos tutoriais no futuro
-  const tutorialId = searchParams.get('tutorialId') || 'default';
+  const tutorialId = id || 'default';
+  const [modules, setModules] = useState([]);
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const q = query(collection(db, 'modules'), where('tutorialId', '==', tutorialId));
+        const querySnapshot = await getDocs(q);
+        const modulesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (modulesData.length > 0) {
+          setModules(modulesData);
+        } else {
+          // Fallback to local data
+          setModules(tutorialId === '1' ? modulosGestaoTempo : modulosTutorial2);
+        }
+      } catch (error) {
+        console.error('Error fetching modules:', error);
+        // Fallback to local data
+        setModules(tutorialId === '1' ? modulosGestaoTempo : modulosTutorial2);
+      }
+    };
+    if (tutorialId !== 'default') {
+      fetchModules();
+    }
+  }, [tutorialId]);
 
   const [statusMap, setStatusMap] = useState({});
   useEffect(() => {
@@ -60,12 +88,12 @@ const ModulesPage = () => {
         <div className="modules-page">
           <h2>Módulos do Curso</h2>
           <ul className="modules-list">
-            {modulosGestaoTempo.map((modulo, idx) => {
+            {modules.map((modulo, idx) => {
               const isCompleted = completedModules.includes(modulo.moduleId);
               let isLocked = false;
               if (idx === 0) isLocked = false;
               else {
-                const prevModule = modulosGestaoTempo[idx - 1];
+                const prevModule = modules[idx - 1];
                 isLocked = !completedModules.includes(prevModule.moduleId);
               }
               // Status: se bloqueado, sempre 'A concluir'. Se concluído, 'Concluído'. Se desbloqueado e não concluído, 'Estágio atual'.
@@ -102,6 +130,7 @@ const ModulesPage = () => {
           </ul>
         </div>
       </main>
+      <WhatsAppIcon />
     </>
   );
 };

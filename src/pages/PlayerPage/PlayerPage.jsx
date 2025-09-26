@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import './PlayerPage.css';
+import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
+import { Spinner } from '../../components/Spinner/Spinner';
 
 
 
@@ -18,6 +20,8 @@ const PlayerPage = () => {
   // Estado para status do módulo
   const [status, setStatus] = useState('Estágio atual');
   const [pendingComplete, setPendingComplete] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [quizLoading, setQuizLoading] = useState(false);
 
   // Atualiza status ao montar e ao clicar em Próximo
   useEffect(() => {
@@ -33,6 +37,11 @@ const PlayerPage = () => {
       setStatus('Estágio atual');
     }
     setPendingComplete(false);
+    setVideoLoading(modulo?.type === 'video');
+    // Fallback: hide spinner after 5 seconds if onLoad doesn't fire
+    if (modulo?.type === 'video') {
+      setTimeout(() => setVideoLoading(false), 5000);
+    }
   }, [tutorialId, moduleId, modulo]);
 
   // Função para salvar progresso no localStorage
@@ -98,6 +107,7 @@ const PlayerPage = () => {
     const [answers, setAnswers] = useState(Array(modulo.questions.length).fill(null));
     const [submitted, setSubmitted] = useState(false);
     const [score, setScore] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const handleSelect = (qIdx, optIdx) => {
       if (submitted) return;
@@ -108,13 +118,18 @@ const PlayerPage = () => {
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      let correct = 0;
-      modulo.questions.forEach((q, idx) => {
-        if (answers[idx] === q.answer) correct++;
-      });
-      setScore(correct);
-      setSubmitted(true);
-      // onComplete só é chamado ao clicar no botão Próximo
+      setLoading(true);
+      // Simulate processing time
+      setTimeout(() => {
+        let correct = 0;
+        modulo.questions.forEach((q, idx) => {
+          if (answers[idx] === q.answer) correct++;
+        });
+        setScore(correct);
+        setSubmitted(true);
+        setLoading(false);
+        // onComplete só é chamado ao clicar no botão Próximo
+      }, 1000); // 1 second delay
     };
 
     const handleRetry = () => {
@@ -145,9 +160,10 @@ const PlayerPage = () => {
             ))}
           </div>
         ))}
-        {!submitted && (
+        {!submitted && !loading && (
           <button type="submit" style={{background:'#212529', color:'#fff', border:'none', borderRadius:'6px', padding:'0.7rem 2rem', fontSize:'1rem', fontWeight:600, cursor:'pointer', marginTop:'1rem'}}>Enviar respostas</button>
         )}
+        {loading && <Spinner />}
         {submitted && (
           <div style={{marginTop:'1.2rem', fontWeight:600, color: score === modulo.questions.length ? '#28a745' : '#e67e22'}}>
             {score === modulo.questions.length ? (
@@ -172,7 +188,8 @@ const PlayerPage = () => {
   }
 
   return (
-    <div className="player-page">
+    <>
+      <div className="player-page">
       <header className="player-page-header">
         <div className="player-header-content">
           <div className="player-header-left">
@@ -194,27 +211,44 @@ const PlayerPage = () => {
         </div>
       </header>
       <main>
-        <div className="player-container">
+        <div className="player-container fade-in">
           <div className="video-box">
             {modulo ? (
               modulo.type === 'video' ? (
-                <iframe
-                  ref={iframeRef}
-                  width="100%"
-                  height="400"
-                  src={
-                    modulo.urlDoVideoEmbed.includes('enablejsapi=1')
-                      ? modulo.urlDoVideoEmbed
-                      : modulo.urlDoVideoEmbed + (modulo.urlDoVideoEmbed.includes('?') ? '&' : '?') + 'enablejsapi=1'
-                  }
-                  title={modulo.title}
-                  frameBorder="0"
-                  allowFullScreen
-                  style={{ borderRadius: '12px', background: '#000' }}
-                  id="ytplayer"
-                ></iframe>
+                videoLoading ? (
+                  <Spinner />
+                ) : (
+                  <iframe
+                    ref={iframeRef}
+                    width="100%"
+                    height="400"
+                    src={
+                      modulo.urlDoVideoEmbed.includes('enablejsapi=1')
+                        ? modulo.urlDoVideoEmbed
+                        : modulo.urlDoVideoEmbed + (modulo.urlDoVideoEmbed.includes('?') ? '&' : '?') + 'enablejsapi=1'
+                    }
+                    title={modulo.title}
+                    frameBorder="0"
+                    allowFullScreen
+                    style={{ borderRadius: '12px', background: '#000' }}
+                    id="ytplayer"
+                    onLoad={() => setVideoLoading(false)}
+                  ></iframe>
+                )
               ) : (
-                <QuizAtividade modulo={modulo} onComplete={() => { saveProgress(true); setStatus('completed'); setShowNextButton(true); }} status={status} />
+                <QuizAtividade modulo={modulo} onComplete={() => { 
+                  saveProgress(true); 
+                  setStatus('completed'); 
+                  setShowNextButton(true);
+                  // Track completion
+                  if (window.gtag) {
+                    window.gtag('event', 'module_completed', {
+                      event_category: 'engagement',
+                      event_label: modulo.title,
+                      tutorial_id: tutorialId
+                    });
+                  }
+                }} status={status} />
               )
             ) : (
               <div id="video-player">Selecione um módulo para assistir</div>
@@ -259,6 +293,8 @@ const PlayerPage = () => {
         )}
       </main>
     </div>
+    <WhatsAppIcon />
+    </>
   );
 }
 

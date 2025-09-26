@@ -1,12 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './CoursesPage.css';
-import { tutoriais } from '../../data/database';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { tutoriais as localTutoriais } from '../../data/database';
 import { useLocation, Link } from 'react-router-dom';
+import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 
 
 function CoursesPage() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
+  const [tutoriais, setTutoriais] = useState([]);
+
+  useEffect(() => {
+    const fetchTutoriais = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'tutorials'));
+        const tutorialsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (tutorialsData.length > 0) {
+          setTutoriais(tutorialsData);
+        } else {
+          // Fallback to local data if Firestore is empty
+          setTutoriais(localTutoriais);
+        }
+      } catch (error) {
+        console.error('Error fetching tutorials:', error);
+        // Fallback to local data on error
+        setTutoriais(localTutoriais);
+      }
+    };
+    fetchTutoriais();
+  }, []);
   return (
     <>
       <header className="player-page-header">
@@ -43,7 +67,7 @@ function CoursesPage() {
                 <div className="course-list-item">
                   <div className="course-img-placeholder">
                     {/* Substitua o src abaixo por uma imagem específica se desejar */}
-                    <img src="/public/ML.svg" alt="Imagem do tutorial" />
+                    <img src="/ML.svg" alt="Imagem do tutorial" />
                   </div>
                   <div>
                     <h3>{tutorial.titulo}</h3>
@@ -55,6 +79,7 @@ function CoursesPage() {
           </div>
         </div>
       </main>
+      <WhatsAppIcon />
     </>
   );
 }
