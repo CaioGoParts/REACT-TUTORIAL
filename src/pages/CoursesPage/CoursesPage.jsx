@@ -14,8 +14,34 @@ function CoursesPage() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
   const [tutoriais, setTutoriais] = useState([]);
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [tutorialProgress, setTutorialProgress] = useState({});
+
+  // Função para fazer logout
+  const handleLogout = async () => {
+    try {
+      console.log('Iniciando logout...');
+      
+      // Limpar progresso local
+      Object.keys(localStorage)
+        .filter(key => key.startsWith('progress_'))
+        .forEach(key => localStorage.removeItem(key));
+      
+      console.log('Progresso local limpo, fazendo logout do Firebase...');
+      
+      // Fazer logout do Firebase
+      await logout();
+      
+      console.log('Logout do Firebase concluído, redirecionando...');
+      
+      // Redirecionar para login
+      window.location.replace('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, redirecionar
+      window.location.replace('/');
+    }
+  };
 
   // Função para obter a imagem do tutorial baseada no ID
   const getTutorialImage = (tutorialId) => {
@@ -79,13 +105,7 @@ function CoursesPage() {
             {!isLoginPage && (
               <button
                 className="logout-btn"
-                onClick={() => {
-                  Object.keys(localStorage)
-                    .filter(key => key.startsWith('progress_'))
-                    .forEach(key => localStorage.removeItem(key));
-                  // Usar replace para impedir que o usuário volte pelas abas
-                  window.location.replace('/');
-                }}
+                onClick={handleLogout}
               >
                 Logout
               </button>
