@@ -7,7 +7,7 @@ import { useLocation, Link } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { useAuth } from '../../contexts/AuthContext';
 import { loadUserProgress } from '../../utils/progressUtils';
-import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
+import { modulosGestaoTempo, modulosTutorial2, modulosTutorial3 } from '../../data/database';
 
 
 function CoursesPage() {
@@ -17,24 +17,23 @@ function CoursesPage() {
   const { currentUser } = useAuth();
   const [tutorialProgress, setTutorialProgress] = useState({});
 
+  // Função para obter a imagem do tutorial baseada no ID
+  const getTutorialImage = (tutorialId) => {
+    switch (tutorialId) {
+      case '1':
+        return '/gopartbrasil_logo.jpeg';
+      case '2':
+        return '/ML.svg';
+      case '3':
+        return '/icons8-comprador-240.png';
+      default:
+        return '/ML.svg'; // fallback
+    }
+  };
+
   useEffect(() => {
-    const fetchTutoriais = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'tutorials'));
-        const tutorialsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (tutorialsData.length > 0) {
-          setTutoriais(tutorialsData);
-        } else {
-          // Fallback to local data if Firestore is empty
-          setTutoriais(localTutoriais);
-        }
-      } catch (error) {
-        console.error('Error fetching tutorials:', error);
-        // Fallback to local data on error
-        setTutoriais(localTutoriais);
-      }
-    };
-    fetchTutoriais();
+    // For now, always use local data to ensure all tutorials are shown
+    setTutoriais(localTutoriais);
   }, []);
 
   // Carregar progresso dos tutoriais quando o usuário estiver logado e os tutoriais carregados
@@ -46,14 +45,14 @@ function CoursesPage() {
       for (const tutorial of tutoriais) {
         try {
           const progress = await loadUserProgress(currentUser.uid, tutorial.id);
-          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : modulosTutorial2.length;
+          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
           progressData[tutorial.id] = {
             completed: progress.completedModules.length,
             total: totalModules
           };
         } catch (error) {
           console.error(`Erro ao carregar progresso do tutorial ${tutorial.id}:`, error);
-          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : modulosTutorial2.length;
+          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
           progressData[tutorial.id] = {
             completed: 0,
             total: totalModules
@@ -65,6 +64,7 @@ function CoursesPage() {
 
     loadTutorialProgress();
   }, [currentUser, tutoriais]);
+
   return (
     <>
       <header className="courses-page-header">
@@ -106,8 +106,7 @@ function CoursesPage() {
                 <div className="course-list-item">
                   <div className="course-header">
                     <div className="course-img-placeholder">
-                      {/* Substitua o src abaixo por uma imagem específica se desejar */}
-                      <img src="/ML.svg" alt="Imagem do tutorial" />
+                      <img src={getTutorialImage(tutorial.id)} alt="Imagem do tutorial" />
                     </div>
                     {tutorialProgress[tutorial.id] && (
                       <div className="course-progress">
