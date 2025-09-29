@@ -16,10 +16,10 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/cursos" element={<PrivateRoute><CoursesPage /></PrivateRoute>} />
-    <Route path="/modulos" element={<PrivateRoute><ModulesPage /></PrivateRoute>} />
-    <Route path="/tutorial/:id" element={<PrivateRoute><ModulesPage /></PrivateRoute>} />
+          <Route path="/modulos" element={<PrivateRoute><ModulesPage /></PrivateRoute>} />
+          <Route path="/tutorial/:id" element={<PrivateRoute><ModulesPage /></PrivateRoute>} />
           <Route path="/player" element={<PrivateRoute><PlayerPage /></PrivateRoute>} />
-          <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute adminOnly={true}><AdminPage /></PrivateRoute>} />
         </Routes>
       </Router>
     </AuthProvider>
