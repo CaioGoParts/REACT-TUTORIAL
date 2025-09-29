@@ -6,7 +6,7 @@ import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
 import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { useAuth } from '../../contexts/AuthContext';
-import { loadUserProgress } from '../../utils/progressUtils';
+import { loadUserProgress, validateAndOrderModules } from '../../utils/progressUtils';
 
 
 
@@ -29,10 +29,11 @@ const ModulesPage = () => {
         const querySnapshot = await getDocs(q);
         const modulesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (modulesData.length > 0) {
-          setModules(modulesData);
+          setModules(validateAndOrderModules(modulesData));
         } else {
           // Fallback to local data
-          setModules(tutorialId === '1' ? modulosGestaoTempo : modulosTutorial2);
+          const rawModules = tutorialId === '1' ? modulosGestaoTempo : modulosTutorial2;
+          setModules(validateAndOrderModules(rawModules));
         }
       } catch (error) {
         console.error('Error fetching modules:', error);
@@ -106,34 +107,40 @@ const ModulesPage = () => {
       <header className="modules-page-header">
         <div className="modules-header-content">
           <div className="modules-header-left">
-            <button
-              className="back-to-courses-btn"
-              onClick={() => navigate('/cursos')}
-              title="Voltar aos cursos"
-            >
-              <i className="fa fa-arrow-left" aria-hidden="true"></i>
-              Cursos
-            </button>
             <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="modules-header-logo" />
-            <h1>TUTORIAL GOPARTS</h1>
           </div>
-          {!isLoginPage && (
-            <button
-              className="logout-btn"
-              onClick={() => {
-                Object.keys(localStorage)
-                  .filter(key => key.startsWith('progress_'))
-                  .forEach(key => localStorage.removeItem(key));
-                window.location.href = '/';
-              }}
-            >
-              Logout
-            </button>
-          )}
+          <div className="modules-header-center">
+            <h1>TREINAMENTOS</h1>
+          </div>
+          <div className="modules-header-right">
+            {!isLoginPage && (
+              <button
+                className="logout-btn"
+                onClick={() => {
+                  Object.keys(localStorage)
+                    .filter(key => key.startsWith('progress_'))
+                    .forEach(key => localStorage.removeItem(key));
+                  // Usar replace para impedir que o usuário volte pelas abas
+                  window.location.replace('/');
+                }}
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       </header>
       <main>
         <div className="modules-page">
+          <button
+            className="back-to-courses-btn"
+            onClick={() => navigate('/cursos')}
+            title="Voltar aos cursos"
+            style={{ marginBottom: '1rem' }}
+          >
+            <i className="fa fa-arrow-left" aria-hidden="true"></i>
+            Cursos
+          </button>
           <h2>Módulos do Curso</h2>
           <div style={{marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
             <p style={{margin: 0, fontSize: '1.1rem', fontWeight: 500, color: '#495057'}}>
@@ -186,9 +193,11 @@ const ModulesPage = () => {
                   style={{ cursor: 'pointer' }}
                   data-module-id={modulo.moduleId}
                 >
-                  {isCompleted ? <i className="fa fa-check-circle" style={{color:'#28a745',marginRight:8}}></i> : null}
-                  <span>{modulo.title}</span>
-                  <span style={{marginLeft:8, fontSize:'0.95em', color: isCompleted ? '#28a745' : '#888'}}>{status}</span>
+                  <div className="module-content">
+                    <span>{modulo.title}</span>
+                    <span style={{marginLeft:8, fontSize:'0.95em', color: isCompleted ? '#28a745' : '#888'}}>{status}</span>
+                  </div>
+                  {isCompleted ? <i className="fa fa-check-circle module-check-icon"></i> : null}
                 </li>
               );
             })}

@@ -5,6 +5,7 @@
   min-height: 100vh;
   width: 100%;
   background-color: #f8f9fa;
+  padding-top: 4rem;
 }
 
 /* --- Seção Esquerda: Formulário --- */
@@ -26,7 +27,14 @@
 }
 
 .form-header {
-  color: #555;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-header h1 {
+  margin: 0 auto;
+  display: block;
 }
 
 .form-main {
@@ -36,7 +44,7 @@
   justify-content: center;
   text-align: center;
 }
-
+                                                                                                                                
 .form-logo {
   width: 250px;
   height: 250px;

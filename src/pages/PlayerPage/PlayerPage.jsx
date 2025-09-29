@@ -4,7 +4,7 @@ import './PlayerPage.css';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useAuth } from '../../contexts/AuthContext';
-import { saveUserProgress, loadUserProgress } from '../../utils/progressUtils';
+import { saveUserProgress, loadUserProgress, validateAndOrderModules } from '../../utils/progressUtils';
 import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
 
 
@@ -23,7 +23,8 @@ const PlayerPage = () => {
 
   // Função para encontrar o próximo módulo
   const getNextModule = (currentTutorialId, currentModuleId) => {
-    const modules = currentTutorialId === '1' ? modulosGestaoTempo : modulosTutorial2;
+    const rawModules = currentTutorialId === '1' ? modulosGestaoTempo : modulosTutorial2;
+    const modules = validateAndOrderModules(rawModules);
     const currentIndex = modules.findIndex(mod => mod.moduleId === currentModuleId);
     
     if (currentIndex === -1 || currentIndex === modules.length - 1) {
@@ -59,9 +60,9 @@ const PlayerPage = () => {
       setPendingComplete(false);
       setVideoLoading(modulo?.type === 'video');
 
-      // Fallback: hide spinner after 5 seconds if onLoad doesn't fire
+      // Fallback: hide spinner after 2 seconds if onLoad doesn't fire
       if (modulo?.type === 'video') {
-        setTimeout(() => setVideoLoading(false), 5000);
+        setTimeout(() => setVideoLoading(false), 2000);
       }
     };
 
@@ -204,20 +205,25 @@ const PlayerPage = () => {
         <div className="player-header-content">
           <div className="player-header-left">
             <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="player-header-logo" />
-            <h1>TUTORIAL GOPARTS</h1>
           </div>
-          <button
-            className="logout-btn"
-            onClick={() => {
-              // Limpa todos os progressos salvos
-              Object.keys(localStorage)
-                .filter(key => key.startsWith('progress_'))
-                .forEach(key => localStorage.removeItem(key));
-              window.location.href = '/';
-            }}
-          >
-            Logout
-          </button>
+          <div className="player-header-center">
+            <h1>TREINAMENTOS</h1>
+          </div>
+          <div className="player-header-right">
+            <button
+              className="logout-btn"
+              onClick={() => {
+                // Limpa todos os progressos salvos
+                Object.keys(localStorage)
+                  .filter(key => key.startsWith('progress_'))
+                  .forEach(key => localStorage.removeItem(key));
+                // Usar replace para impedir que o usuário volte pelas abas
+                window.location.replace('/');
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
       <main>

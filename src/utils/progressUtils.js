@@ -79,3 +79,49 @@ export const isModuleCompleted = async (userId, tutorialId, moduleId) => {
     return false;
   }
 };
+
+// Função para validar e corrigir a ordem dos módulos
+// Garante que sempre comece com vídeo e alterne: vídeo -> atividade -> vídeo -> atividade
+export const validateAndOrderModules = (modules) => {
+  if (!Array.isArray(modules) || modules.length === 0) {
+    return modules;
+  }
+
+  // Criar uma cópia dos módulos para não modificar o original
+  const orderedModules = [...modules];
+
+  // Reordenar para garantir o padrão: vídeo -> atividade -> vídeo -> atividade
+  // Primeiro módulo deve sempre ser vídeo
+  let videoModules = orderedModules.filter(mod => mod.type === 'video');
+  let activityModules = orderedModules.filter(mod => mod.type === 'atividade');
+
+  const result = [];
+  let videoIndex = 0;
+  let activityIndex = 0;
+
+  // Sempre começar com vídeo
+  while (videoIndex < videoModules.length || activityIndex < activityModules.length) {
+    // Adicionar vídeo se disponível
+    if (videoIndex < videoModules.length) {
+      result.push(videoModules[videoIndex]);
+      videoIndex++;
+    }
+
+    // Adicionar atividade se disponível
+    if (activityIndex < activityModules.length) {
+      result.push(activityModules[activityIndex]);
+      activityIndex++;
+    }
+  }
+
+  // Verificar se a ordem está correta, se não estiver, usar a ordem corrigida
+  const currentOrder = orderedModules.map(mod => mod.type);
+  const expectedOrder = result.map(mod => mod.type);
+
+  if (JSON.stringify(currentOrder) !== JSON.stringify(expectedOrder)) {
+    console.warn('Ordem dos módulos corrigida para seguir padrão vídeo -> atividade');
+    return result;
+  }
+
+  return orderedModules;
+};

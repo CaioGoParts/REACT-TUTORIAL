@@ -38,7 +38,8 @@ function LoginPage() {
       <section className="login-form-section">
         <div className="form-wrapper">
           <header className="form-header">
-            <span>🇧🇷 BR</span>
+            <h1>TREINAMENTOS</h1>
+            
           </header>
           <main className="form-main">
             <img src="/gopartbrasil_logo.jpeg" alt="Logo da Empresa" className="form-logo" />
@@ -74,19 +75,14 @@ function LoginPage() {
                 ></i>
               </div>
               
-              <div className="form-links">
-                <a href="#">ESQUECI A SENHA</a>
-                <a href="#">SUPORTE</a>
-              </div>
+              
               
               <button type="submit" className="btn-acessar" disabled={loading}>
                 {loading ? 'ENTRANDO...' : 'ACESSAR'}
               </button>
             </form>
           </main>
-          <footer className="form-footer">
-            <p>Todos os Direitos reservado a: GoParts </p>
-          </footer>
+         
         </div>
       </section>
 

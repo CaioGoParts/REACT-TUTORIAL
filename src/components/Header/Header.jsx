@@ -1,17 +1,16 @@
 // Header.jsx
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
   const { logout, currentUser } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      // Usar replace para impedir que o usuário volte pelas abas
+      window.location.replace('/');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }

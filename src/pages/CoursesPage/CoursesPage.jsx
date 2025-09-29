@@ -67,25 +67,30 @@ function CoursesPage() {
   }, [currentUser, tutoriais]);
   return (
     <>
-      <header className="player-page-header">
-        <div className="player-header-content">
-          <div className="player-header-left">
-            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="player-header-logo" />
-            <h1>GO ACADEMY</h1>
+      <header className="courses-page-header">
+        <div className="courses-header-content">
+          <div className="courses-header-left">
+            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="courses-header-logo" />
           </div>
-          {!isLoginPage && (
-            <button
-              className="logout-btn"
-              onClick={() => {
-                Object.keys(localStorage)
-                  .filter(key => key.startsWith('progress_'))
-                  .forEach(key => localStorage.removeItem(key));
-                window.location.href = '/';
-              }}
-            >
-              Logout
-            </button>
-          )}
+          <div className="courses-header-center">
+            <h1>TREINAMENTOS</h1>
+          </div>
+          <div className="courses-header-right">
+            {!isLoginPage && (
+              <button
+                className="logout-btn"
+                onClick={() => {
+                  Object.keys(localStorage)
+                    .filter(key => key.startsWith('progress_'))
+                    .forEach(key => localStorage.removeItem(key));
+                  // Usar replace para impedir que o usuário volte pelas abas
+                  window.location.replace('/');
+                }}
+              >
+                Logout
+              </button>
+            )}
+          </div>
         </div>
       </header>
       <main>
