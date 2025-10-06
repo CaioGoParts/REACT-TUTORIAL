@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './ModulesPage.css';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { modulosGestaoTempo, modulosTutorial2, modulosTutorial3 } from '../../data/database';
+import { modulosAdminGoParts, modulosTutorial2, modulosTutorial3 } from '../../data/database';
 import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,6 +24,12 @@ const ModulesPage = () => {
 
   useEffect(() => {
     const fetchModules = async () => {
+      // Forçar uso apenas dos dados locais (temporário para corrigir dados antigos)
+      const rawModules = tutorialId === '1' ? modulosAdminGoParts : tutorialId === '2' ? modulosTutorial2 : modulosTutorial3;
+      setModules(validateAndOrderModules(rawModules));
+      
+      // Código original comentado temporariamente
+      /*
       try {
         const q = query(collection(db, 'modules'), where('tutorialId', '==', tutorialId));
         const querySnapshot = await getDocs(q);
@@ -32,14 +38,15 @@ const ModulesPage = () => {
           setModules(validateAndOrderModules(modulesData));
         } else {
           // Fallback to local data
-          const rawModules = tutorialId === '1' ? modulosGestaoTempo : tutorialId === '2' ? modulosTutorial2 : modulosTutorial3;
+          const rawModules = tutorialId === '1' ? modulosAdminGoParts : tutorialId === '2' ? modulosTutorial2 : modulosTutorial3;
           setModules(validateAndOrderModules(rawModules));
         }
       } catch (error) {
         console.error('Error fetching modules:', error);
         // Fallback to local data
-        setModules(tutorialId === '1' ? modulosGestaoTempo : tutorialId === '2' ? modulosTutorial2 : modulosTutorial3);
+        setModules(tutorialId === '1' ? modulosAdminGoParts : tutorialId === '2' ? modulosTutorial2 : modulosTutorial3);
       }
+      */
     };
     if (tutorialId !== 'default') {
       fetchModules();
@@ -107,7 +114,7 @@ const ModulesPage = () => {
       <header className="modules-page-header">
         <div className="modules-header-content">
           <div className="modules-header-left">
-            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="modules-header-logo" />
+            <img src="/gopartsW.png" alt="Logo GoParts" className="modules-header-logo" />
           </div>
           <div className="modules-header-center">
             <h1>TREINAMENTOS</h1>

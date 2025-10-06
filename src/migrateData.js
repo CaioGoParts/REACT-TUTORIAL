@@ -1,7 +1,7 @@
 // src/migrateData.js
 import { db } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { tutoriais, modulosGestaoTempo, modulosTutorial2 } from './data/database';
+import { tutoriais, modulosAdminGoParts, modulosTutorial2 } from './data/database';
 
 const migrateData = async () => {
   try {
@@ -11,7 +11,7 @@ const migrateData = async () => {
     }
 
     // Migrate modules for tutorial 1
-    for (const module of modulosGestaoTempo) {
+    for (const module of modulosAdminGoParts) {
       await addDoc(collection(db, 'modules'), { ...module, tutorialId: '1' });
     }
 

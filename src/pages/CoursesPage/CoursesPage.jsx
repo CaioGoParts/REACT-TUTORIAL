@@ -7,7 +7,7 @@ import { useLocation, Link } from 'react-router-dom';
 import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { useAuth } from '../../contexts/AuthContext';
 import { loadUserProgress } from '../../utils/progressUtils';
-import { modulosGestaoTempo, modulosTutorial2, modulosTutorial3 } from '../../data/database';
+import { modulosAdminGoParts, modulosTutorial2, modulosTutorial3 } from '../../data/database';
 
 
 function CoursesPage() {
@@ -71,14 +71,14 @@ function CoursesPage() {
       for (const tutorial of tutoriais) {
         try {
           const progress = await loadUserProgress(currentUser.uid, tutorial.id);
-          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
+          const totalModules = tutorial.id === '1' ? modulosAdminGoParts.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
           progressData[tutorial.id] = {
             completed: progress.completedModules.length,
             total: totalModules
           };
         } catch (error) {
           console.error(`Erro ao carregar progresso do tutorial ${tutorial.id}:`, error);
-          const totalModules = tutorial.id === '1' ? modulosGestaoTempo.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
+          const totalModules = tutorial.id === '1' ? modulosAdminGoParts.length : tutorial.id === '2' ? modulosTutorial2.length : modulosTutorial3.length;
           progressData[tutorial.id] = {
             completed: 0,
             total: totalModules
@@ -96,7 +96,7 @@ function CoursesPage() {
       <header className="courses-page-header">
         <div className="courses-header-content">
           <div className="courses-header-left">
-            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="courses-header-logo" />
+            <img src="/gopartsW.png" alt="Logo GoParts" className="courses-header-logo" />
           </div>
           <div className="courses-header-center">
             <h1>TREINAMENTOS</h1>

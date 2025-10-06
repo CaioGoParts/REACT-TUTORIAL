@@ -1,7 +1,7 @@
-/* src/index.css */
+/* src/index.css - Estilos específicos para Go Academy */
 
-/* Remove margens e define uma fonte padrão para a página inteira */
-body {
+/* Remove margens e define uma fonte padrão para containers específicos */
+.go-academy-body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -10,12 +10,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Garante que o container principal do React possa ocupar a tela inteira */
-#root {
+/* Garante que o container principal do módulo possa ocupar a tela inteira */
+.go-academy-root {
   min-height: 100vh;
 }
 
-/* Um bom "reset" para garantir que o layout seja mais previsível */
-* {
+/* Um bom "reset" para garantir que o layout seja mais previsível em containers específicos */
+.go-academy-reset * {
   box-sizing: border-box;
 }

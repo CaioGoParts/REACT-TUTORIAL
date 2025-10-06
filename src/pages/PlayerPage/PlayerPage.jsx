@@ -5,7 +5,7 @@ import WhatsAppIcon from '../../components/WhatsAppIcon/WhatsAppIcon';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveUserProgress, loadUserProgress, validateAndOrderModules } from '../../utils/progressUtils';
-import { modulosGestaoTempo, modulosTutorial2 } from '../../data/database';
+import { modulosAdminGoParts, modulosTutorial2, modulosTutorial3 } from '../../data/database';
 
 
 
@@ -23,7 +23,7 @@ const PlayerPage = () => {
 
   // Função para encontrar o próximo módulo
   const getNextModule = (currentTutorialId, currentModuleId) => {
-    const rawModules = currentTutorialId === '1' ? modulosGestaoTempo : modulosTutorial2;
+    const rawModules = currentTutorialId === '1' ? modulosAdminGoParts : currentTutorialId === '2' ? modulosTutorial2 : modulosTutorial3;
     const modules = validateAndOrderModules(rawModules);
     const currentIndex = modules.findIndex(mod => mod.moduleId === currentModuleId);
     
@@ -204,7 +204,7 @@ const PlayerPage = () => {
       <header className="player-page-header">
         <div className="player-header-content">
           <div className="player-header-left">
-            <img src="/gopartswhitelogo.png" alt="Logo GoParts" className="player-header-logo" />
+            <img src="/gopartsW.png" alt="Logo GoParts" className="player-header-logo" />
           </div>
           <div className="player-header-center">
             <h1>TREINAMENTOS</h1>
